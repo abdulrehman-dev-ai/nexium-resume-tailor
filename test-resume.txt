@@ -1,0 +1,23 @@
+John Doe
+Software Engineer
+
+Experience:
+- 5 years of web development
+- Proficient in JavaScript, React, Node.js
+- Experience with databases and APIs
+
+Education:
+- Bachelor's in Computer Science
+- University of Technology
+
+Skills:
+- Frontend: React, HTML, CSS, JavaScript
+- Backend: Node.js, Express, MongoDB
+- Tools: Git, Docker, AWS
+
+Projects:
+- E-commerce platform with React and Node.js
+- Real-time chat application
+- Task management system
+
+This is a sample resume for testing the document parsing functionality.
