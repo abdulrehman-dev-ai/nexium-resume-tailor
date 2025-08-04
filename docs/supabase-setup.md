@@ -9,7 +9,7 @@ This error occurs when Supabase's email service is not properly configured. Here
 ### Step 1: Access Supabase Dashboard
 1. Go to [https://supabase.com/dashboard](https://supabase.com/dashboard)
 2. Sign in to your account
-3. Select your project: `pptnbuwrdiaqxklykfwb`
+3. Select your project: `ipmihvbfjvuhnuwladhy`
 
 ### Step 2: Configure Email Settings
 1. Navigate to **Authentication** → **Settings**
@@ -110,7 +110,7 @@ If email continues to be problematic, consider these alternatives:
 
 Ensure your `.env.local` has the correct values:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://pptnbuwrdiaqxklykfwb.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://ipmihvbfjvuhnuwladhy.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```

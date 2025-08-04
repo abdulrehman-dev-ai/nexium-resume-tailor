@@ -106,12 +106,7 @@ export default function Home() {
               </svg>
             </button>
             
-            <button
-              onClick={() => router.push('/dev-login')}
-              className="bg-white hover:bg-gray-50 text-gray-700 font-semibold py-4 px-8 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 transform hover:scale-105"
-            >
-              Developer Access
-            </button>
+
           </div>
           
           <div className="mt-12 flex flex-wrap justify-center items-center gap-4 md:gap-8 text-sm text-gray-500">

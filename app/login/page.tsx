@@ -21,6 +21,41 @@ export default function Login() {
       }
     }
     checkAuth()
+
+    // Handle error messages from auth callback
+    const urlParams = new URLSearchParams(window.location.search)
+    const error = urlParams.get('error')
+    
+    if (error) {
+      switch (error) {
+        case 'expired':
+          setMessage(
+            '⚠️ Magic link has expired.\n\n' +
+            'Please request a new magic link below. Magic links expire after 1 hour for security.'
+          )
+          break
+        case 'used':
+          setMessage(
+            '⚠️ Magic link already used.\n\n' +
+            'This often happens when email scanners automatically click links. Please request a new magic link below.'
+          )
+          break
+        case 'invalid':
+          setMessage(
+            '⚠️ Invalid or corrupted magic link.\n\n' +
+            'Please request a new magic link below.'
+          )
+          break
+        default:
+          setMessage(
+            '⚠️ Authentication failed.\n\n' +
+            'Please try requesting a new magic link.'
+          )
+      }
+      
+      // Clear the error from URL
+      window.history.replaceState({}, '', window.location.pathname)
+    }
   }, [router, supabase.auth])
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -30,13 +65,12 @@ export default function Login() {
     setLoading(true)
     setMessage('')
     
-    // Directly send magic link without checking user existence
-    // This avoids rate limits and works for both new and existing users
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          shouldCreateUser: true,
         },
       })
 
@@ -47,7 +81,15 @@ export default function Login() {
           setMessage(`Error: ${error.message}`)
         }
       } else {
-        setMessage('Check your email for the magic link!')
+        setMessage(
+          `✅ Magic link sent to ${email}!\n\n` +
+          `📧 Check your email and click the link to sign in.\n\n` +
+          `⚠️ Important Tips:\n` +
+          `• Use the same browser/device to click the link\n` +
+          `• Click the link immediately after receiving it\n` +
+          `• If the link doesn't work, try requesting a new one\n` +
+          `• Corporate emails may have security scanners - try a personal email if issues persist`
+        )
       }
     } catch (error) {
       setMessage('An unexpected error occurred. Please try again.')
@@ -99,14 +141,26 @@ export default function Login() {
         </form>
 
         {message && (
-          <div className={`text-center text-sm p-3 rounded-md ${
-            message.includes('Error') || message.includes('Invalid') 
+          <div className={`text-sm p-4 rounded-md ${
+            message.includes('Error') || message.includes('⚠️') 
               ? 'text-red-700 bg-red-50 border border-red-200' 
               : 'text-green-700 bg-green-50 border border-green-200'
           }`}>
-            {message}
+            <div className="whitespace-pre-line">{message}</div>
           </div>
         )}
+
+        {/* Magic Link Troubleshooting Tips */}
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <h3 className="text-sm font-medium text-blue-800 mb-2">💡 Magic Link Tips</h3>
+          <ul className="text-xs text-blue-700 space-y-1">
+            <li>• Check your spam/junk folder if you don't see the email</li>
+            <li>• Use the same browser and device to click the magic link</li>
+            <li>• Click the link immediately after receiving it</li>
+            <li>• If using corporate email, try a personal email (Gmail, Yahoo, etc.)</li>
+            <li>• Request a new link if the previous one doesn't work</li>
+          </ul>
+        </div>
 
       </div>
     </div>
