@@ -48,7 +48,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/nexium-resume-tailor.git
+   git clone https://github.com/abdulrehman-dev-ai/nexium-resume-tailor.git
    cd nexium-resume-tailor
    ```
 
@@ -330,8 +330,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: [Project Wiki](./docs/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/nexium-resume-tailor/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/nexium-resume-tailor/discussions)
+- **Issues**: [GitHub Issues](https://github.com/abdulrehman-dev-ai/nexium-resume-tailor/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/abdulrehman-dev-ai/nexium-resume-tailor/discussions)
+- **Live Demo**: [https://nexium-resume-tailor-theta.vercel.app/](https://nexium-resume-tailor-theta.vercel.app/)
 
 ---
 

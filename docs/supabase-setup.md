@@ -18,9 +18,11 @@ This error occurs when Supabase's email service is not properly configured. Here
 
 #### Option A: Use Supabase's Built-in Email (Recommended for Development)
 1. In **Auth Settings**, ensure **Enable email confirmations** is checked
-2. Set **Site URL** to: `http://localhost:3000`
+2. Set **Site URL** to: `http://localhost:3000` (for development)
+   - For production: `https://nexium-resume-tailor-theta.vercel.app`
 3. Add **Redirect URLs**:
-   - `http://localhost:3000/auth/callback`
+   - `http://localhost:3000/auth/callback` (for development)
+   - `https://nexium-resume-tailor-theta.vercel.app/auth/callback` (for production)
    - `https://your-production-domain.com/auth/callback` (for later)
 
 #### Option B: Configure Custom SMTP (For Production)
