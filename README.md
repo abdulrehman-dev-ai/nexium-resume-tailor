@@ -318,6 +318,7 @@ DEBUG=true npm run dev
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT © [Abdul Rehman](https://github.com/abdulrehman-dev-ai)
 
 ## 🙏 Acknowledgments
 
@@ -332,7 +333,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Documentation**: [Project Wiki](./docs/)
 - **Issues**: [GitHub Issues](https://github.com/abdulrehman-dev-ai/nexium-resume-tailor/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/abdulrehman-dev-ai/nexium-resume-tailor/discussions)
-- **Live Demo**: [https://nexium-resume-tailor-theta.vercel.app/](https://nexium-resume-tailor-theta.vercel.app/)
+- **Live Demo**: [https://nexium-resume-tailor-theta.vercel.app/](https://nexium-resume-tailor-wine.vercel.app/)
 
 ---
 
