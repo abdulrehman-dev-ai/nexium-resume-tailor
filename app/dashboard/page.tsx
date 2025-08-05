@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [resumeText, setResumeText] = useState('')
   const [jobDescription, setJobDescription] = useState('')
+  const [uploadId, setUploadId] = useState<string | null>(null)
   const [optimizing, setOptimizing] = useState(false)
   const [result, setResult] = useState<OptimizationResult | null>(null)
   const [history, setHistory] = useState<OptimizationResult[]>([])
@@ -36,14 +37,25 @@ export default function Dashboard() {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { user }, error } = await supabase.auth.getUser()
+        
+        if (error) {
+          console.error('Auth error:', error)
+          setLoading(false)
+          router.replace('/login')
+          return
+        }
+        
         setUser(user)
         setLoading(false)
         
         if (!user) {
           router.replace('/login')
         } else {
-          fetchHistory()
+          // Add a small delay to ensure the session is fully established
+          setTimeout(() => {
+            fetchHistory()
+          }, 100)
         }
       } catch (error) {
         console.error('Auth error:', error)
@@ -56,11 +68,19 @@ export default function Dashboard() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email)
+        
         if (event === 'SIGNED_OUT' || !session) {
+          setUser(null)
+          setHistory([])
           router.replace('/login')
-        } else {
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           setUser(session.user)
           setLoading(false)
+          // Refetch history when user signs in or token is refreshed
+          setTimeout(() => {
+            fetchHistory()
+          }, 100)
         }
       }
     )
@@ -70,13 +90,59 @@ export default function Dashboard() {
 
   const fetchHistory = async () => {
     try {
-      const response = await fetch('/api/optimizations')
+      // Check if user is still authenticated before making the request
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !user) {
+        console.log('User not authenticated, redirecting to login')
+        router.replace('/login')
+        return
+      }
+
+      const response = await fetch('/api/optimizations', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Ensure cookies are sent
+      })
+      
+      if (response.status === 401) {
+        console.log('Authentication failed, redirecting to login')
+        await supabase.auth.signOut()
+        router.replace('/login')
+        return
+      }
+      
       if (response.ok) {
         const data = await response.json()
-        setHistory(data.optimizations || [])
+        // Handle the correct response structure
+        const optimizations = data.data || data.optimizations || []
+        // Transform the data to match our interface
+        const transformedHistory = optimizations.map((opt: any) => ({
+          id: opt._id || opt.id,
+          originalResume: opt.originalResume || '',
+          jobDescription: opt.jobDescription || '',
+          optimizedResume: opt.optimizedResume || '',
+          matchScore: opt.matchScore || 0,
+          suggestions: opt.suggestions || [],
+          keywords: opt.keywordAnalysis?.present || [],
+          createdAt: opt.createdAt || new Date().toISOString()
+        }))
+        setHistory(transformedHistory)
+      } else {
+        console.error('Failed to fetch history:', response.status, response.statusText)
       }
     } catch (error) {
       console.error('Error fetching history:', error)
+      // If it's a network error, it might be an auth issue
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        console.log('Network error, checking authentication...')
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.replace('/login')
+        }
+      }
     }
   }
 
@@ -134,11 +200,25 @@ export default function Dashboard() {
       const formData = new FormData()
       formData.append('file', file)
       
-      // Send to document parsing API
-      const response = await fetch('/api/parse-document', {
+      // Check authentication before uploading
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !user) {
+        throw new Error('Authentication required. Please log in again.')
+      }
+
+      // Send to enhanced upload-resume API for better MongoDB integration
+      const response = await fetch('/api/upload-resume', {
         method: 'POST',
+        credentials: 'include', // Ensure cookies are sent
         body: formData
       })
+      
+      if (response.status === 401) {
+        await supabase.auth.signOut()
+        router.replace('/login')
+        throw new Error('Session expired. Please log in again.')
+      }
       
       const result = await response.json()
       
@@ -146,22 +226,25 @@ export default function Dashboard() {
         throw new Error(result.error || 'Failed to parse document')
       }
       
-      if (!result.success || !result.text) {
-        throw new Error('Document parsing failed - no text extracted')
+      if (!result.success || !result.data?.text) {
+        throw new Error(result.error || 'Document parsing failed - no text extracted')
       }
       
-      console.log('Document parsed successfully:')
-      console.log('- File type:', result.fileType)
-      console.log('- Word count:', result.wordCount)
-      console.log('- Text length:', result.text.length)
-      console.log('- First 100 chars:', result.text.substring(0, 100))
+      console.log('Document uploaded and parsed successfully:')
+      console.log('- Upload ID:', result.data.uploadId)
+      console.log('- File type:', result.data.fileType)
+      console.log('- Word count:', result.data.wordCount)
+      console.log('- Text length:', result.data.text.length)
+      console.log('- First 100 chars:', result.data.text.substring(0, 100))
       
-      setResumeText(result.text)
+      // Store the upload information
+      setResumeText(result.data.text)
+      setUploadId(result.data.uploadId)
       setActiveStep(2)
       
       // Show success message
-      const fileTypeDisplay = result.fileType.toUpperCase()
-      console.log(`✅ ${fileTypeDisplay} file processed successfully! Extracted ${result.wordCount} words.`)
+      const fileTypeDisplay = result.data.fileType.toUpperCase()
+      console.log(`✅ ${fileTypeDisplay} file uploaded and processed successfully! Extracted ${result.data.wordCount} words.`)
       
     } catch (error) {
       console.error('Error processing file:', error)
@@ -180,23 +263,41 @@ export default function Dashboard() {
       return
     }
 
+    // Validate inputs
+    if (resumeText.length < 100) {
+      alert('Resume text seems too short. Please ensure your resume contains sufficient content.')
+      return
+    }
+
+    if (jobDescription.length < 50) {
+      alert('Job description seems too short. Please provide a more detailed job description.')
+      return
+    }
+
     setOptimizing(true)
     setActiveStep(3)
 
     try {
-      const response = await fetch('/api/optimize-resume', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          resumeText: resumeText,
-          jobDescription: jobDescription,
-        }),
-      })
+      console.log('Starting resume optimization...')
+      console.log('Resume length:', resumeText.length)
+      console.log('Job description length:', jobDescription.length)
 
-      if (response.ok) {
-        const responseData = await response.json()
+      const response = await fetch('/api/optimize-resume', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Ensure cookies are sent
+          body: JSON.stringify({
+            resumeText,
+            jobDescription,
+          }),
+        })
+
+      const responseData = await response.json()
+      console.log('Optimization response:', responseData)
+
+      if (response.ok && responseData.success) {
         // Extract the actual data from the nested response
         const result = {
           id: responseData.data.optimizationId,
@@ -210,13 +311,18 @@ export default function Dashboard() {
         }
         setResult(result)
         setActiveStep(4)
-        fetchHistory() // Refresh history
+        console.log('Optimization completed successfully!')
+        
+        // Refresh history to show the new optimization
+        await fetchHistory()
       } else {
-        throw new Error('Optimization failed')
+        const errorMessage = responseData.error || 'Optimization failed'
+        throw new Error(errorMessage)
       }
     } catch (error) {
       console.error('Error optimizing resume:', error)
-      alert('Error optimizing resume. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Error optimizing resume: ${errorMessage}\n\nPlease try again or contact support if the issue persists.`)
       setActiveStep(2)
     } finally {
       setOptimizing(false)
@@ -228,6 +334,7 @@ export default function Dashboard() {
     setResumeFile(null)
     setResumeText('')
     setJobDescription('')
+    setUploadId(null)
     setResult(null)
   }
 

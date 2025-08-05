@@ -41,11 +41,26 @@ export async function GET(request: NextRequest) {
     const optimizations = await Optimization.find({ userId: user.id })
       .sort({ createdAt: -1 })
       .limit(20)
-      .select('-originalResume -optimizedResume') // Exclude large text fields for list view
+      .lean() // Convert to plain JavaScript objects for better performance
+
+    // Transform the data for frontend consumption
+    const transformedOptimizations = optimizations.map((opt: any) => ({
+      id: (opt._id as mongoose.Types.ObjectId).toString(),
+      userId: opt.userId,
+      userEmail: opt.userEmail,
+      originalResume: opt.originalResume,
+      jobDescription: opt.jobDescription,
+      optimizedResume: opt.optimizedResume,
+      suggestions: opt.suggestions || [],
+      matchScore: opt.matchScore || 0,
+      keywordAnalysis: opt.keywordAnalysis || { missing: [], present: [] },
+      createdAt: opt.createdAt
+    }))
 
     return NextResponse.json({
       success: true,
-      data: optimizations
+      data: transformedOptimizations,
+      count: transformedOptimizations.length
     })
 
   } catch (error) {
