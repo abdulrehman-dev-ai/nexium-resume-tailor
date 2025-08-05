@@ -6,6 +6,7 @@ import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import Navbar from '../components/Navbar'
 
 interface OptimizationResult {
   id: string
@@ -490,29 +491,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">RT</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">Resume Tailor AI</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
-              <button
-                onClick={handleSignOut}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+      <Navbar variant="transparent" />
+      
       <div className="container mx-auto px-4 py-8">
         {/* Progress Steps */}
         <div className="mb-8">
